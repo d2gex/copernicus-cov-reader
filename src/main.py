@@ -1,4 +1,4 @@
-from src import config, hauls_cleaner
+from src import bb_calculator, config, hauls_cleaner
 
 if __name__ == "__main__":
     c_bb = hauls_cleaner.HaulsCleaner(config.INPUT_PATH / "clean_db_tallas.csv")
@@ -6,4 +6,6 @@ if __name__ == "__main__":
     unique_hauls_df = c_bb.run(
         columns=["Idlance", "lon", "lat", "dia", "largada_time", "virada_time"]
     )
-    print(unique_hauls_df.head(3))
+    bbox_cal = bb_calculator.BoundingBoxCalculator(unique_hauls_df, pad_deg=0.08)
+    bbox = bbox_cal.run()
+    print(bbox)
