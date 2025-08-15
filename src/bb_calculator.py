@@ -7,7 +7,6 @@ from src import bounding_box
 class BoundingBoxCalculator:
     """
     Compute a coarse bounding box for a set of haul coordinates, with optional padding.
-    Constructor takes the DataFrame (dependency injected) and the padding degrees.
     """
 
     def __init__(self, df: pd.DataFrame, pad_deg: float = 0.0):

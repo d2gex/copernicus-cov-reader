@@ -11,11 +11,6 @@ from src.plotters import utils
 class CoastHaulsPlotter:
     """
     Plot hauls + coarse bbox + coastline, and report any hauls outside the bbox.
-
-    Dependencies are injected:
-      - hauls_df: DataFrame with columns lon, lat
-      - bbox: BoundingBox from BoundingBoxCalculator
-      - coast_path: path to coast file (shp/geojson/gpkg or CSV lon,lat)
     """
 
     def __init__(
@@ -44,8 +39,7 @@ class CoastHaulsPlotter:
         fig_size: Tuple[float, float] = (9, 9),
     ) -> Tuple[plt.Figure, plt.Axes]:
         """
-        Draw the plot on the provided axes (or create new ones) and return (fig, ax).
-        Does not call savefig() or show().
+        Draw the plot on the provided axes (or create new ones) and return (fig, ax)
         """
         kind, coast = utils.read_coast_to_geoms(self.coast_path)
 

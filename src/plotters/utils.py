@@ -14,15 +14,6 @@ def read_coast_to_geoms(
 ) -> Tuple[Kind, Union[gpd.GeoDataFrame, pd.DataFrame]]:
     """
     Read a coastline as geometries.
-
-    Supports:
-      - Shapefile / GeoJSON / GeoPackage: returns ("geopandas", GeoDataFrame in EPSG:4326)
-      - CSV (lon,lat): returns ("csv", pandas.DataFrame with lon,lat)
-
-    Returns:
-        (kind, obj)
-          kind="geopandas" -> obj: gpd.GeoDataFrame (EPSG:4326)
-          kind="csv"       -> obj: pd.DataFrame with columns lon, lat
     """
     ext = os.path.splitext(path)[1].lower()
 
