@@ -25,10 +25,10 @@ class CMSubsetClient:
     def subset_one(
         self,
         bbox: Tuple[float, float, float, float],  # (min_lon, max_lon, min_lat, max_lat)
-        start_datetime: str,  # "YYYY-MM-DD"
-        end_datetime: str,  # "YYYY-MM-DD"
         output_filename: str,
         output_directory: str | Path,
+        start_datetime: Optional[str] = None,  # "YYYY-MM-DD"
+        end_datetime: Optional[str] = None,  # "YYYY-MM-DD"
     ) -> None:
         min_lon, max_lon, min_lat, max_lat = bbox
         out_dir = Path(output_directory)
@@ -41,11 +41,14 @@ class CMSubsetClient:
             "maximum_longitude": max_lon,
             "minimum_latitude": min_lat,
             "maximum_latitude": max_lat,
-            "start_datetime": start_datetime,
-            "end_datetime": end_datetime,
             "output_filename": output_filename,
             "output_directory": str(out_dir),
         }
+
+        if start_datetime is not None:
+            kwargs["start_datetime"] = start_datetime
+        if end_datetime is not None:
+            kwargs["end_datetime"] = end_datetime
         if self.min_depth is not None:
             kwargs["minimum_depth"] = self.min_depth
         if self.max_depth is not None:
@@ -67,8 +70,8 @@ class CMSubsetClient:
                 fname = filename_fn(bbox, start_dt, end_dt)
                 self.subset_one(
                     bbox=bbox,
-                    start_datetime=start_dt,
-                    end_datetime=end_dt,
                     output_filename=fname,
                     output_directory=output_directory,
+                    start_datetime=start_dt,
+                    end_datetime=end_dt,
                 )
