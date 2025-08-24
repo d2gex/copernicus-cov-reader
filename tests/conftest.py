@@ -10,6 +10,8 @@ from src.copernicus.grid_spec import GridSpec
 DATA_DIR = Path(__file__).parent / "data"
 DS_REF_FILE_1 = DATA_DIR / "sst_2020-01-01_2020-01-31.nc"
 DS_REF_FILE_2 = DATA_DIR / "sst_2020-02-01_2020-02-29.nc"
+DS_STATIC = DATA_DIR / "sst_static_layer.nc"
+MASK_CANDIDATES = ("mask", "sea_binary_mask", "landsea_mask", "sea_mask")
 
 
 @pytest.fixture(scope="session")
@@ -25,6 +27,14 @@ def ds_ref_2() -> xr.Dataset:
     if not DS_REF_FILE_2.exists():
         pytest.skip(f"Missing test data: {DS_REF_FILE_2}")
     with xr.open_dataset(DS_REF_FILE_2) as ds:
+        return ds.load()
+
+
+@pytest.fixture(scope="session")
+def ds_static() -> xr.Dataset:
+    if not DS_STATIC.exists():
+        pytest.skip(f"Missing test data: {DS_STATIC}")
+    with xr.open_dataset(DS_STATIC) as ds:
         return ds.load()
 
 
@@ -55,3 +65,11 @@ def ds_modified(ds_ref: xr.Dataset, grid_spec: GridSpec) -> xr.Dataset:
     lons[0] = lons[0] + 3  # Change in the longitude arrays
     ds_bad = ds_bad.assign_coords({lon_name: (ds_bad[lon_name].dims, lons)})
     return ds_bad
+
+
+@pytest.fixture(scope="session")
+def mask_da(ds_static: xr.Dataset) -> xr.DataArray:
+    for name in ("mask", "sea_binary_mask", "landsea_mask", "sea_mask"):
+        if name in ds_static.data_vars:
+            return ds_static[name]
+    pytest.skip(f"No mask variable found in {DS_STATIC.name}")
