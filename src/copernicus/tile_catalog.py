@@ -24,18 +24,21 @@ class TileCatalog:
         self.sea_land_mask = sea_land_mask.astype(bool, copy=False)
         # Build sea tile ID map
         self.tile_id_map, self._sea_j, self._sea_i = self.__build_sea_tile_id_map()
-        self._sea_lon = self.grid.lons[self._sea_i]
+        # Build two separate arrays where each tile ID is mapped to (lon, lat)
         self._sea_lat = self.grid.lats[self._sea_j]
+        self._sea_lon = self.grid.lons[self._sea_i]
 
     def __build_sea_tile_id_map(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Returns array of sea tile IDs (0..K-1). tile_id_map"""
         tile_id_map = np.full((self.grid.ny, self.grid.nx), -1, dtype=np.int64)
+        # get the index of sea cells only
         sea_flat_idx = np.flatnonzero(self.sea_land_mask.ravel(order="C"))
+        # Flatten the tile_id_map and assign the sea tile IDs in ascending order
         tile_id_map.ravel(order="C")[sea_flat_idx] = np.arange(
             sea_flat_idx.size, dtype=np.int64
         )
 
-        # Precompute centers for sea cells, aligned with tile IDs (k == tile_id).
+        # It gets the index of sea cells only and splits into two separate j, i dimensions.
         jj, ii = np.nonzero(self.sea_land_mask)
         return tile_id_map, jj, ii
 
@@ -51,7 +54,7 @@ class TileCatalog:
           take the shallowest layer
         """
         if mask is None:
-            sea_land_mask = np.ones((len(grid.lats), len(grid.lons)), dtype=bool)
+            sea_land_mask = np.ones((grid.ny, grid.nx), dtype=bool)
         elif not isinstance(mask, xr.DataArray):
             raise TypeError("mask must be an xarray.DataArray or None.")
         else:
@@ -64,7 +67,7 @@ class TileCatalog:
 
             # Normalize to boolean sea/land
             arr = np.asarray(mask.values)
-            if arr.ndim != 2 or arr.shape != (len(grid.lats), len(grid.lons)):
+            if arr.ndim != 2 or arr.shape != (grid.ny, grid.nx):
                 raise ValueError("Mask must be 2-D (lat, lon) matching the grid.")
             sea_land_mask = (arr == 1).astype(bool, copy=False)
         return sea_land_mask
