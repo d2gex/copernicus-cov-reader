@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import numpy as np
 
 from src.copernicus.tile_catalog import TileCatalog
-from tests import helpers
+from tests.tile_catalog import helpers
 
 
 def test_build_mask_all_sea_when_none(grid_spec) -> None:
