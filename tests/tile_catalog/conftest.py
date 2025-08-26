@@ -1,13 +1,5 @@
 import numpy as np
 import pytest
-import xarray as xr
-
-
-@pytest.fixture(scope="session")
-def mask_da(ds_static: xr.Dataset) -> xr.DataArray:
-    for name in ("mask", "sea_binary_mask", "landsea_mask", "sea_mask"):
-        if name in ds_static.data_vars:
-            return ds_static[name]
 
 
 @pytest.fixture(scope="session")

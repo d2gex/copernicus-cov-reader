@@ -4,8 +4,6 @@ import xarray as xr
 from src.copernicus.grid_spec import GridSpec
 from tests import config as test_config
 
-MASK_CANDIDATES = ("mask", "sea_binary_mask", "landsea_mask", "sea_mask")
-
 
 @pytest.fixture(scope="session")
 def ds_sst_slg_ref() -> xr.Dataset:
@@ -35,3 +33,8 @@ def ds_static() -> xr.Dataset:
 def grid_spec(ds_sst_slg_ref: xr.Dataset) -> GridSpec:
     """GridSpec built once from the reference dataset."""
     return GridSpec.from_dataset(ds_sst_slg_ref)
+
+
+@pytest.fixture(scope="session")
+def mask_da(ds_static: xr.Dataset) -> xr.DataArray:
+    return ds_static["mask"]
