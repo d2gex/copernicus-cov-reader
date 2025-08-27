@@ -78,7 +78,10 @@ def test_zos_tile_order_and_coords_match_catalog(
     got_lon = sub["tile_lon"].to_numpy()
     got_lat = sub["tile_lat"].to_numpy()
 
-    # These are copied from the catalog, so exact equality should hold.
-    # If you prefer a belt-and-braces tolerance, replace with np.allclose(..., atol=1e-12).
     assert np.array_equal(got_lon, exp_lon)
     assert np.array_equal(got_lat, exp_lat)
+
+    # c3) depth_idx is always -1 and NaN
+    depth_values = set(frame["depth_value"].unique().tolist())
+    assert set(frame["depth_idx"]) == {-1}
+    assert len(depth_values) == 1 and np.isnan(depth_values.pop())
