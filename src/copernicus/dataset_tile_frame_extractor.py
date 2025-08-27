@@ -61,7 +61,7 @@ class DatasetTileFrameExtractor:
 
         # Sea tile metadata (aligned and stable)
         tile_ids = self.catalog.sea_tile_ids().astype(np.int64, copy=False)  # 0..K-1
-        K = tile_ids.size
+        num_tiles = tile_ids.size
         if with_coords:
             tile_lon, tile_lat = self.catalog.sea_tile_coords()
 
@@ -76,13 +76,13 @@ class DatasetTileFrameExtractor:
         # For each time slice get all variable values associated to a particular depth
         for t_idx, t_val in enumerate(time_vals):
             base = da.isel({self.time_dim: t_idx})
-            depth_iter = range(len(base[self.depth_dim])) if has_depth else (0,)
+            depth_iter = range(len(base[self.depth_dim])) if has_depth else (0,)  #
             depth_vals = base[self.depth_dim].values if has_depth else None
 
             for d_idx in depth_iter:
                 # Resolve slice + depth value/index
                 slice_da = base.isel({self.depth_dim: d_idx}) if has_depth else base
-                depth_idx = int(d_idx) if has_depth else -1
+                depth_idx = d_idx if has_depth else -1
                 depth_value = depth_vals[d_idx] if has_depth else np.nan
 
                 # Extract sea-only values in tile_id order
@@ -90,9 +90,9 @@ class DatasetTileFrameExtractor:
                 sea_vec = slice2d.ravel(order="C")[sea_mask_flat]
 
                 record = {
-                    "time": np.repeat(t_val, K),
-                    "depth_idx": np.repeat(depth_idx, K),
-                    "depth_value": np.repeat(depth_value, K),
+                    "time": np.repeat(t_val, num_tiles),
+                    "depth_idx": np.repeat(depth_idx, num_tiles),
+                    "depth_value": np.repeat(depth_value, num_tiles),
                     "tile_id": tile_ids,
                     var_name: sea_vec.astype(sea_vec.dtype, copy=False),
                 }
