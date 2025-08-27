@@ -35,14 +35,24 @@ def test_zos_shape_and_columns(
     )
 
     # a) shape: len = time_count * sea_tile_count; depth_idx must be {0}
-    T = ds_zos_no_depth_ref["time"].sizes["time"]
-    K = int(zos_catalog.sea_tile_ids().size)
-    assert len(frame) == T * K
-    assert set(frame["depth_idx"].unique().tolist()) == {0}
+    num_time_slices = ds_zos_no_depth_ref["time"].sizes["time"]
+    num_tiles = int(zos_catalog.sea_tile_ids().size)
+    depth_values = set(frame["depth_value"].unique().tolist())
+    assert len(frame) == num_time_slices * num_tiles
+    assert set(frame["depth_idx"].unique().tolist()) == {-1}
+    assert len(depth_values) == 1 and np.isnan(depth_values.pop())
 
     # b) required columns present
-    expected_cols = {"time", "depth_idx", "tile_id", "tile_lon", "tile_lat", "zos"}
-    assert expected_cols.issubset(frame.columns)
+    expected_cols = {
+        "time",
+        "depth_idx",
+        "depth_value",
+        "tile_id",
+        "tile_lon",
+        "tile_lat",
+        "zos",
+    }
+    assert set(frame.columns) == expected_cols
 
 
 def test_zos_tile_order_and_coords_match_catalog(

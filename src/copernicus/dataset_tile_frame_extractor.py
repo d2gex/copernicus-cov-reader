@@ -1,7 +1,5 @@
-# src/copernicus/dataset_tile_frame_extractor.py
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Optional, Sequence
 
 import numpy as np
@@ -11,24 +9,22 @@ import xarray as xr
 from src.copernicus.tile_catalog import TileCatalog
 
 
-@dataclass(frozen=True)
 class DatasetTileFrameExtractor:
     """
     Flatten one or multiple variables from an xarray.Dataset into tidy rows aligned
     with stable sea-only tile_ids.
 
-    Pure transformer (no I/O).
-
-    Single-variable output columns:
-      ["time", "depth_idx", "tile_id", "tile_lon", "tile_lat", <var_name>]
-
-    Multi-variable output columns (wide):
-      ["time", "depth_idx", "tile_id", "tile_lon", "tile_lat", var1, var2, ...]
     """
 
-    catalog: TileCatalog
-    time_dim: str = "time"
-    depth_dim: Optional[str] = "depth"
+    def __init__(
+        self,
+        catalog: TileCatalog,
+        time_dim: str = "time",
+        depth_dim: Optional[str] = "depth",
+    ) -> None:
+        self.catalog = catalog
+        self.time_dim = time_dim
+        self.depth_dim = depth_dim
 
     def _slice_2d(self, da_slice: xr.DataArray, ny: int, nx: int) -> np.ndarray:
         """
@@ -56,13 +52,16 @@ class DatasetTileFrameExtractor:
         """
         Return a tidy DataFrame for a single variable, optionally including tile coordinates.
 
+        Depth semantics:
+          - No depth dim → depth_idx = -1, depth_value = NaN
+          - With depth dim → depth_idx as index, depth_value from the depth coordinate
         """
         da = ds[var_name]  # KeyError if missing
         time_vals = da[self.time_dim].values  # KeyError if missing
 
         # Sea tile metadata (aligned and stable)
         tile_ids = self.catalog.sea_tile_ids().astype(np.int64, copy=False)  # 0..K-1
-
+        K = tile_ids.size
         if with_coords:
             tile_lon, tile_lat = self.catalog.sea_tile_coords()
 
@@ -74,18 +73,26 @@ class DatasetTileFrameExtractor:
         has_depth = (self.depth_dim is not None) and (self.depth_dim in da.dims)
         frames: list[pd.DataFrame] = []
 
+        # For each time slice get all variable values associated to a particular depth
         for t_idx, t_val in enumerate(time_vals):
             base = da.isel({self.time_dim: t_idx})
             depth_iter = range(len(base[self.depth_dim])) if has_depth else (0,)
+            depth_vals = base[self.depth_dim].values if has_depth else None
 
             for d_idx in depth_iter:
+                # Resolve slice + depth value/index
                 slice_da = base.isel({self.depth_dim: d_idx}) if has_depth else base
+                depth_idx = int(d_idx) if has_depth else -1
+                depth_value = depth_vals[d_idx] if has_depth else np.nan
+
+                # Extract sea-only values in tile_id order
                 slice2d = self._slice_2d(slice_da, ny, nx)
                 sea_vec = slice2d.ravel(order="C")[sea_mask_flat]
 
                 record = {
-                    "time": np.repeat(t_val, tile_ids.size),
-                    "depth_idx": np.repeat(d_idx, tile_ids.size),
+                    "time": np.repeat(t_val, K),
+                    "depth_idx": np.repeat(depth_idx, K),
+                    "depth_value": np.repeat(depth_value, K),
                     "tile_id": tile_ids,
                     var_name: sea_vec.astype(sea_vec.dtype, copy=False),
                 }
