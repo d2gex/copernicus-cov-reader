@@ -148,3 +148,71 @@ def test_thetao_multi_depth_tile_ids_coords_depth_and_values(
     # 4) variable values match the sea-vector from the dataset slice
     got_vals = sub["thetao"].to_numpy()
     assert np.allclose(got_vals, expected_vals, equal_nan=True)
+
+
+def test_multi_vars_thetao_so_keys_coords_depths_times_shapes(
+    ds_mdlg_ref: xr.Dataset,
+    ds_mdlg_static: xr.Dataset,
+):
+    catalog = TileCatalog.from_dataset(ds_mdlg_ref, mask=ds_mdlg_static["mask_thetao"])
+    ext = DatasetTileFrameExtractor(catalog=catalog)
+
+    all_var_df = ext.to_frame_multi(ds_mdlg_ref, ["thetao", "so"])
+
+    cols_common = [
+        "time",
+        "depth_idx",
+        "depth_value",
+        "tile_id",
+        "tile_lon",
+        "tile_lat",
+    ]
+    df_thetao = all_var_df[cols_common + ["thetao"]]
+    df_so = all_var_df[cols_common + ["so"]]
+
+    # a) Same columns except the variable name
+    assert set(df_thetao.columns) - {"thetao"} == set(df_so.columns) - {"so"}
+
+    # b) Same number of rows
+    assert len(df_thetao) == len(df_so)
+
+    # c) Same unique coordinates; none are NaN
+    # lon1u = np.unique(df_thetao["tile_lon"].to_numpy())
+    # lon2u = np.unique(df_so["tile_lon"].to_numpy())
+    # lat1u = np.unique(df_thetao["tile_lat"].to_numpy())
+    # lat2u = np.unique(df_so["tile_lat"].to_numpy())
+
+    lon1u, lat1u, lon2u, lat2u = [
+        np.unique(df[coord_col].to_numpy())
+        for df in [df_thetao, df_so]
+        for coord_col in ["tile_lon", "tile_lat"]
+    ]
+
+    assert (
+        not df_thetao["tile_lon"].isna().any()
+        and not df_thetao["tile_lat"].isna().any()
+    )
+    assert not df_so["tile_lon"].isna().any() and not df_so["tile_lat"].isna().any()
+    assert np.array_equal(lon1u, lon2u)
+    assert np.array_equal(lat1u, lat2u)
+
+    # d) Same unique depth indices and values (ignore NaNs in values)
+    didx1 = np.unique(df_thetao["depth_idx"].to_numpy())
+    didx2 = np.unique(df_so["depth_idx"].to_numpy())
+
+    dval1 = np.unique(df_thetao["depth_value"].to_numpy())
+    dval2 = np.unique(df_so["depth_value"].to_numpy())
+    dval1_nn = dval1[~np.isnan(dval1)]
+    dval2_nn = dval2[~np.isnan(dval2)]
+
+    assert np.array_equal(didx1, didx2)
+    assert np.allclose(np.sort(dval1_nn), np.sort(dval2_nn), rtol=0, atol=0)
+
+    # e) Same unique times
+    t1 = np.unique(df_thetao["time"].to_numpy())
+    t2 = np.unique(df_so["time"].to_numpy())
+    assert np.array_equal(np.sort(t1), np.sort(t2))
+
+    # f) Value columns: float dtype and contain at least one non-NaN
+    assert df_thetao["thetao"].dtype.kind == "f" and df_thetao["thetao"].notna().any()
+    assert df_so["so"].dtype.kind == "f" and df_so["so"].notna().any()

@@ -83,7 +83,6 @@ class DatasetTileFrameExtractor:
                 # Resolve slice + depth value/index
                 slice_da = base.isel({self.depth_dim: d_idx}) if has_depth else base
                 depth_idx = d_idx if has_depth else -1
-                depth_value = depth_vals[d_idx] if has_depth else np.nan
 
                 # Extract sea-only values in tile_id order
                 slice2d = self._slice_2d(slice_da, ny, nx)
@@ -92,11 +91,13 @@ class DatasetTileFrameExtractor:
                 record = {
                     "time": np.repeat(t_val, num_tiles),
                     "depth_idx": np.repeat(depth_idx, num_tiles),
-                    "depth_value": np.repeat(depth_value, num_tiles),
                     "tile_id": tile_ids,
                     var_name: sea_vec.astype(sea_vec.dtype, copy=False),
                 }
+                # Avoid adding float columns for potential multiple variable merges to avoid float comparison
                 if with_coords:
+                    depth_value = depth_vals[d_idx] if has_depth else np.nan
+                    record["depth_value"] = np.repeat(depth_value, num_tiles)
                     record["tile_lon"] = tile_lon
                     record["tile_lat"] = tile_lat
 
