@@ -7,7 +7,7 @@ from src.copernicus.dataset_tile_frame_extractor import DatasetTileFrameExtracto
 from src.copernicus.tile_catalog import TileCatalog
 
 
-def test_single_and_multi_identical_for_zos(
+def test_single_and_multi_methods_identical_for_zos(
     ds_zos_no_depth_ref: xr.Dataset,
     zos_extractor: DatasetTileFrameExtractor,
 ):
@@ -26,7 +26,7 @@ def test_single_and_multi_identical_for_zos(
     pd.testing.assert_frame_equal(single, multi, check_like=False, check_dtype=False)
 
 
-def test_zos_shape_and_columns(
+def test_zos_same_shape_and_columns_as_csv(
     ds_zos_no_depth_ref: xr.Dataset,
     zos_catalog: TileCatalog,
     zos_extractor: DatasetTileFrameExtractor,
@@ -56,7 +56,7 @@ def test_zos_shape_and_columns(
     assert set(frame.columns) == expected_cols
 
 
-def test_zos_tile_order_and_coords_match_catalog(
+def test_zos_tile_order_and_coords_match_between_catalog_and_csv(
     ds_zos_no_depth_ref: xr.Dataset,
     zos_catalog: TileCatalog,
     zos_extractor: DatasetTileFrameExtractor,
@@ -90,7 +90,7 @@ def test_zos_tile_order_and_coords_match_catalog(
 
 @pytest.mark.parametrize("t_idx", [0, 1])
 @pytest.mark.parametrize("d_idx", list(range(7)))
-def test_thetao_multi_depth_tile_ids_coords_depth_and_values(
+def test_single_variable_multi_depth_tile_ids_coords_depth_and_values_match_between_catalog_and_csv(
     ds_mdlg_ref: xr.Dataset,
     ds_mdlg_static: xr.Dataset,
     t_idx: int,
@@ -150,7 +150,7 @@ def test_thetao_multi_depth_tile_ids_coords_depth_and_values(
     assert np.allclose(got_vals, expected_vals, equal_nan=True)
 
 
-def test_multi_vars_thetao_so_keys_coords_depths_times_shapes(
+def test_multi_vars_thetao_so_keys_coords_depths_times_shapes_in_csv(
     ds_mdlg_ref: xr.Dataset,
     ds_mdlg_static: xr.Dataset,
 ):
