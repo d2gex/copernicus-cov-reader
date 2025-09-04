@@ -3,7 +3,7 @@ import xarray as xr
 
 from src.copernicus.dataset_tile_frame_extractor import DatasetTileFrameExtractor
 from src.copernicus.tile_catalog import TileCatalog
-from tests import config as test_config
+from tests.unit import config as test_config
 
 
 @pytest.fixture(scope="session")

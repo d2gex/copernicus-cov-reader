@@ -2,7 +2,7 @@ import numpy as np
 
 from src.copernicus.kd_index import KDIndex
 from src.copernicus.tile_catalog import TileCatalog
-from tests.kd_index import helpers
+from tests.unit.kd_index import helpers
 
 
 def test_same_lon_closest_lat(grid_3x3, mask_all_sea):

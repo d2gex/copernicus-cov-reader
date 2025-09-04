@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 
 from src.copernicus.grid_spec import GridSpec
-from tests import config as test_config
+from tests.unit import config as test_config
 
 
 @pytest.fixture(scope="session")
