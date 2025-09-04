@@ -8,13 +8,8 @@ class HaulsCleaner:
     Load and clean haul data from a CSV file.
     """
 
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.df: Optional[pd.DataFrame] = None
-
-    def load(self) -> None:
-        with open(self.file_path, "r") as f:
-            self.df = pd.read_csv(f)
+    def __init__(self, df: pd.DataFrame):
+        self.df: pd.DataFrame = df
 
     def run(self, columns: Optional[List[str]] = None) -> pd.DataFrame:
         sel_columns = self.df.columns if columns is None else columns
