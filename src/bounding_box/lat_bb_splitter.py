@@ -1,8 +1,7 @@
-# bbox_splitter.py
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -12,10 +11,13 @@ from src.bounding_box.bounding_box import BoundingBox
 
 @dataclass(frozen=True)
 class BandResult:
-    index: int
+    band: int
     bbox: BoundingBox
-    df: pd.DataFrame  # only 'lon','lat' rows inside this band's sub-bbox
-    lat0: float  # representative latitude for this band (mean or mid)
+    coords_within_band_df: (
+        pd.DataFrame
+    )  # only 'lon','lat' rows inside this band's sub-bbox
+    band_lat0: float  # representative latitude for this band (mean or mid)
+    num_points: int
 
 
 class LatBandSplitter:
@@ -36,7 +38,7 @@ class LatBandSplitter:
     def n_bands(self) -> int:
         return self._n_bands
 
-    def split(self, df: pd.DataFrame) -> List[BandResult]:
+    def split(self, df: pd.DataFrame) -> Optional[List[BandResult]]:
         """
         Perform the split. Keeps only rows with columns 'lon','lat' inside the bbox.
         """
@@ -48,28 +50,43 @@ class LatBandSplitter:
             & (df["lat"] <= self._bbox.max_lat)
         )
         df_in = df.loc[inside_bbox_band, ["lon", "lat"]].reset_index(drop=False)
+        if not len(df_in):
+            return None
 
         # lat band edges
         edges = np.linspace(self._bbox.min_lat, self._bbox.max_lat, self._n_bands + 1)
 
         bbox_list: List[BandResult] = []
         for band in range(self._n_bands):
-            lo = float(edges[band])
-            hi = float(edges[band + 1])
+            lat_lo = float(edges[band])
+            lat_hi = float(edges[band + 1])
 
             # include top edge only on the last band
             if band < self._n_bands - 1:
-                band_mask = (df_in["lat"] >= lo) & (df_in["lat"] < hi)
+                band_mask = (df_in["lat"] >= lat_lo) & (df_in["lat"] < lat_hi)
             else:
-                band_mask = (df_in["lat"] >= lo) & (df_in["lat"] <= hi)
+                band_mask = (df_in["lat"] >= lat_lo) & (df_in["lat"] <= lat_hi)
 
-            df_k = df_in.loc[band_mask, ["index", "lon", "lat"]].reset_index(drop=True)
+            df_band = df_in.loc[band_mask, ["lon", "lat"]].reset_index(drop=True)
 
-            if len(df_k):
-                lat0 = float(df_k["lat"].mean())
+            num_points = len(df_band)
+            if num_points == 0:
+                lat0 = float(df_band["lat"].mean())
             else:
-                lat0 = (lo + hi) * 0.5
+                lat0 = (
+                    lat_lo + lat_hi
+                ) * 0.5  # there may not be coordinates in such band.
 
-            sub_bbox = BoundingBox(self._bbox.min_lon, self._bbox.max_lon, lo, hi)
-            bbox_list.append(BandResult(index=band, bbox=sub_bbox, df=df_k, lat0=lat0))
+            sub_bbox = BoundingBox(
+                self._bbox.min_lon, self._bbox.max_lon, lat_lo, lat_hi
+            )
+            bbox_list.append(
+                BandResult(
+                    band=band,
+                    bbox=sub_bbox,
+                    coords_within_band_df=df_band,
+                    band_lat0=lat0,
+                    num_points=num_points,
+                )
+            )
         return bbox_list
