@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.patches import Rectangle
 
-from src.copernicus.tile_catalog import TileCatalog
+from src.data_processing.tile_catalog import TileCatalog
 
 # ---------- pure helpers ----------
 

@@ -1,7 +1,7 @@
 import pytest
 import xarray as xr
 
-from src.copernicus.grid_spec import GridSpec
+from src.data_processing.grid_spec import GridSpec
 from tests.unit import config as test_config
 
 

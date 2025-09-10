@@ -8,8 +8,8 @@ from typing import List, Optional, Sequence, Tuple
 import pandas as pd
 import xarray as xr
 
-from src.copernicus.dataset_tile_frame_extractor import DatasetTileFrameExtractor
-from src.copernicus.tile_catalog import TileCatalog
+from src.data_processing.dataset_tile_frame_extractor import DatasetTileFrameExtractor
+from src.data_processing.tile_catalog import TileCatalog
 
 
 class NcToCsvConverter:

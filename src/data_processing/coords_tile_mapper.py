@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from src.copernicus.kd_index import KDIndex
+from src.data_processing.kd_index import KDIndex
 
 
 class CoordinatesToTileMapper:

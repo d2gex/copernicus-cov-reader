@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.copernicus.kd_index import KDIndex
-from src.copernicus.tile_catalog import TileCatalog
+from src.data_processing.kd_index import KDIndex
+from src.data_processing.tile_catalog import TileCatalog
 from tests.unit.kd_index import helpers
 
 

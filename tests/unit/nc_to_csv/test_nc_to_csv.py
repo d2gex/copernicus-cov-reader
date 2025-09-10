@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.copernicus.nc_to_csv import NcToCsvConverter
+from src.data_processing.nc_to_csv import NcToCsvConverter
 
 
 def test_generate_writes_expected_count_and_files_exist(

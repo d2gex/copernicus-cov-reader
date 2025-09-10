@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from src.copernicus.dataset_tile_frame_extractor import DatasetTileFrameExtractor
-from src.copernicus.nc_to_csv import NcToCsvConverter
-from src.copernicus.tile_catalog import TileCatalog
+from src.data_processing.dataset_tile_frame_extractor import DatasetTileFrameExtractor
+from src.data_processing.nc_to_csv import NcToCsvConverter
+from src.data_processing.tile_catalog import TileCatalog
 
 
 @pytest.fixture

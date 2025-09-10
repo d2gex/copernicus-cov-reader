@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import numpy as np
 import xarray as xr
 
-from src.copernicus.grid_spec import GridSpec
+from src.data_processing.grid_spec import GridSpec
 
 
 class TileCatalog:

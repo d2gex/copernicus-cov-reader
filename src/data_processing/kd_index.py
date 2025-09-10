@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 from scipy.spatial import cKDTree
 
-from src.copernicus.tile_catalog import TileCatalog
+from src.data_processing.tile_catalog import TileCatalog
 
 
 class KDIndex:
