@@ -28,33 +28,36 @@ class NcToCsvConverter:
 
     # ---------- PUBLIC ----------
 
-    def generate_period_csvs(
-        self, input_dir: Path | str, output_dir: Path | str
-    ) -> List[Path]:
+    def generate_period_csvs(self, input_dir: Path, output_dir: Path) -> List[Path]:
         in_dir = Path(input_dir)
         out_dir = Path(output_dir)
-        if not in_dir.exists() or not in_dir.is_dir():
-            raise ValueError(
-                f"Input dir does not exist or is not a directory: {in_dir}"
-            )
-
-        nc_paths = self._sorted_by_name(self._list_files(in_dir, ".nc"))
-        if not nc_paths:
-            raise ValueError(f"No .nc files found in: {in_dir}")
-
         out_dir.mkdir(parents=True, exist_ok=True)
 
+        nc_paths = self._list_files(in_dir, suffix=".nc")
+        if not nc_paths:
+            return []
+
         written: List[Path] = []
+
+        # Build catalog/extractor once; validate each subsequent dataset against the same grid.
+        catalog = None
+        extractor = None
+
         for nc_path in nc_paths:
             ds = self._nc_read(nc_path)
-            catalog = TileCatalog.from_dataset(ds)
-            extractor = DatasetTileFrameExtractor(
-                catalog=catalog,
-                time_dim=self._time_dim,
-                depth_dim=self._depth_dim,
-            )
-            df = extractor.to_frame_multi(ds, var_names=self._var_names)
 
+            if catalog is None:
+                catalog = TileCatalog.from_dataset(ds)
+                extractor = DatasetTileFrameExtractor(
+                    catalog=catalog,
+                    time_dim=self._time_dim,
+                    depth_dim=self._depth_dim,
+                )
+            else:
+                catalog.grid.validate(ds)
+                assert extractor is not None
+
+            df = extractor.to_frame_multi(ds, var_names=self._var_names)
             if df is None or df.empty:
                 raise ValueError(f"Extractor returned empty DataFrame for: {nc_path}")
 
