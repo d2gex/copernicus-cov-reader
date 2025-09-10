@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from src import bounding_box
+from src.bounding_box import bounding_box
 
 
 class BoundingBoxCalculator:
