@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 
@@ -18,6 +19,7 @@ class NcToCsvConverter:
         var_names: Sequence[str],
         time_dim: str = "time",
         depth_dim: Optional[str] = "depth",
+        sead_land_mask: Optional[np.ndarray] = None,
     ) -> None:
         if not var_names:
             raise ValueError("var_names must be a non-empty sequence.")
@@ -25,6 +27,7 @@ class NcToCsvConverter:
         self._vars_slug: str = self._build_vars_slug(self._var_names)
         self._time_dim = time_dim
         self._depth_dim = depth_dim
+        self._sead_land_mask = sead_land_mask
 
     # ---------- PUBLIC ----------
 
@@ -47,7 +50,7 @@ class NcToCsvConverter:
             ds = self._nc_read(nc_path)
 
             if catalog is None:
-                catalog = TileCatalog.from_dataset(ds)
+                catalog = TileCatalog.from_dataset(ds, self._sead_land_mask)
                 extractor = DatasetTileFrameExtractor(
                     catalog=catalog,
                     time_dim=self._time_dim,
