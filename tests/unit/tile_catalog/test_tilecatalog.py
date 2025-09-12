@@ -6,33 +6,14 @@ from src.data_processing.tile_catalog import TileCatalog
 from tests.unit.tile_catalog import helpers
 
 
-def test_build_mask_all_sea_when_none(grid_spec) -> None:
-    out = TileCatalog.build_sea_land_mask(grid_spec, mask=None)
-    assert isinstance(out, np.ndarray)
-    assert out.shape == (len(grid_spec.lats), len(grid_spec.lons))
-    assert all([out.dtype == bool, out.all()])
-
-
-def test_build_mask_matches_shallowest_layer(grid_spec, mask_da) -> None:
-    # Reference via different route: shallowest-by-index, then align to (lat, lon)
-    ref_da = helpers.shallowest_layer(mask_da).transpose(
-        grid_spec.lat_name, grid_spec.lon_name, ...
-    )
-    ref = np.asarray(ref_da.values) == 1
-
-    out = TileCatalog.build_sea_land_mask(grid_spec, mask=mask_da)
-
-    assert out.dtype == bool
-    assert out.shape == ref.shape
-    assert np.array_equal(out, ref)
-
-
 def test_sea_tile_ids(mock_grid_fields, mock_sea_land_mask) -> None:
     grid = Mock(**mock_grid_fields)
     catalog = TileCatalog(grid=grid, sea_land_mask=mock_sea_land_mask)
 
     ids = catalog.sea_tile_ids()
     assert ids.ndim == 1
+    print(ids)
+    print(helpers.expected_ids())
     assert np.array_equal(ids, helpers.expected_ids())
 
 

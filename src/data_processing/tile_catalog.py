@@ -21,7 +21,7 @@ class TileCatalog:
         self.grid = grid
 
         # Order sea_land_mask by rows and convert it to boo
-        self.sea_land_mask = sea_land_mask.astype(bool, copy=False)
+        self.sea_land_mask = sea_land_mask
         # Build sea tile ID map
         self.tile_id_map, self._sea_j, self._sea_i = self.__build_sea_tile_id_map()
         # Build two separate arrays where each tile ID is mapped to (lon, lat)
@@ -43,42 +43,11 @@ class TileCatalog:
         return tile_id_map, jj, ii
 
     @classmethod
-    def build_sea_land_mask(
-        cls, grid: GridSpec, mask: Optional[xr.DataArray] = None
-    ) -> np.ndarray:
-        """
-        Return a 2-D boolean mask aligned to `grid` (ny×nx).
-
-        - If `mask` is None: all True (treat every cell as sea).
-        - If `mask` is a DataArray on the same grid: if it has a depth-like dim,
-          take the shallowest layer
-        """
-        if mask is None:
-            sea_land_mask = np.ones((grid.ny, grid.nx), dtype=bool)
-        elif not isinstance(mask, xr.DataArray):
-            raise TypeError("mask must be an xarray.DataArray or None.")
-        else:
-            # Collapse to the shallowest depth if a depth-like dim exists
-            depth_dim = next((d for d in ("depth", "z", "lev") if d in mask.dims), None)
-            if depth_dim:
-                mask = mask.sortby(depth_dim).isel({depth_dim: 0}).squeeze(drop=True)
-
-            mask = mask.transpose(grid.lat_name, grid.lon_name, ...).squeeze(drop=True)
-
-            # Normalize to boolean sea/land
-            arr = np.asarray(mask.values)
-            if arr.ndim != 2 or arr.shape != (grid.ny, grid.nx):
-                raise ValueError("Mask must be 2-D (lat, lon) matching the grid.")
-            sea_land_mask = (arr == 1).astype(bool, copy=False)
-        return sea_land_mask
-
-    @classmethod
     def from_dataset(
-        cls, ds: xr.Dataset, mask: Optional[xr.DataArray] = None
+        cls, ds: xr.Dataset, mask: Optional[np.ndarray] = None
     ) -> "TileCatalog":
         grid = GridSpec.from_dataset(ds)
-        sea_land_mask = cls.build_sea_land_mask(grid, mask)
-        return cls(grid=grid, sea_land_mask=sea_land_mask)
+        return cls(grid=grid, sea_land_mask=mask)
 
     def sea_cell_ids(self, tile_id: int) -> Tuple[int, int]:
         """Returns (j,i) indices for a tile ID that matches a sea tile."""
