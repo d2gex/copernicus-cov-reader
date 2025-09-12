@@ -19,3 +19,9 @@ MDLG_STATIC = MULTI_DEPTH_LAYER_GALICIA / "multiple_depth_static_layer.nc"
 ZOS_NO_DEPTH_LAYER_GALICIA = DATA_DIR / "no_depth_zos"
 ZNDG_FILE_1 = ZOS_NO_DEPTH_LAYER_GALICIA / "no_depth_zos_2020-01-01_2020-01-31.nc"
 ZNDG_STATIC = ZOS_NO_DEPTH_LAYER_GALICIA / "no_depth_zos_static.nc"
+
+
+# (3) No depth ZOS test data
+SEA_LAND_MASK_SAMPLES = DATA_DIR / "static_files"
+STATIC_FILE_SEA_LAND_SAMPLE = SEA_LAND_MASK_SAMPLES / "sst_static_layer.nc"
+EMBEDDED_SEA_LAND_SAMPLE = SEA_LAND_MASK_SAMPLES / "SST_GLO_SST_L4_static_layer.nc"
