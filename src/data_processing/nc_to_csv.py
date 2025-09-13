@@ -17,6 +17,7 @@ class NcToCsvConverter:
     def __init__(
         self,
         var_names: Sequence[str],
+        bbox_id: int,
         time_dim: str = "time",
         depth_dim: Optional[str] = "depth",
         sea_land_mask: Optional[np.ndarray] = None,
@@ -25,6 +26,7 @@ class NcToCsvConverter:
             raise ValueError("var_names must be a non-empty sequence.")
         self._var_names: List[str] = list(var_names)
         self._vars_slug: str = self._build_vars_slug(self._var_names)
+        self._bbox_id = int(bbox_id)
         self._time_dim = time_dim
         self._depth_dim = depth_dim
         self._sead_land_mask = sea_land_mask
@@ -53,6 +55,7 @@ class NcToCsvConverter:
                 catalog = TileCatalog.from_dataset(ds, self._sead_land_mask)
                 extractor = DatasetTileFrameExtractor(
                     catalog=catalog,
+                    bbox_id=self._bbox_id,
                     time_dim=self._time_dim,
                     depth_dim=self._depth_dim,
                 )

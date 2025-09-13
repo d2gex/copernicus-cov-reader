@@ -77,6 +77,7 @@ class NcToCsvBatchConverter:
 
             converter = NcToCsvConverter(
                 var_names=self.var_names,
+                bbox_id=bp.index,
                 time_dim=self.time_dim,
                 depth_dim=self.depth_dim,
                 sea_land_mask=sea_land_mask,  # boolean (lat, lon) or None, per product

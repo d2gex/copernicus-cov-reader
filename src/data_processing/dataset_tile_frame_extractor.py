@@ -19,10 +19,12 @@ class DatasetTileFrameExtractor:
     def __init__(
         self,
         catalog: TileCatalog,
+        bbox_id: int,
         time_dim: str = "time",
         depth_dim: Optional[str] = "depth",
     ) -> None:
         self.catalog = catalog
+        self.bbox_id = int(bbox_id)
         self.time_dim = time_dim
         self.depth_dim = depth_dim
 
@@ -106,6 +108,11 @@ class DatasetTileFrameExtractor:
         out = pd.concat(frames, axis=0, ignore_index=True)
         out["tile_id"] = out["tile_id"].astype(np.int64, copy=False)
         out["depth_idx"] = out["depth_idx"].astype(np.int64, copy=False)
+
+        # Avoid bbox_id_{{x}} effect when merging multiple variables - added to one variable only
+        if with_coords:
+            out["bbox_id"] = np.int64(self.bbox_id)
+
         return out
 
     def to_frame_multi(self, ds: xr.Dataset, var_names: Sequence[str]) -> pd.DataFrame:

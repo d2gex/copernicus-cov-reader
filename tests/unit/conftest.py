@@ -45,3 +45,8 @@ def mask_da(ds_static: xr.Dataset) -> np.ndarray:
         sea_value=0,
     )
     return sea_land_builder.build(ds_static)
+
+
+@pytest.fixture(scope="session")
+def bbox_idx_ref() -> int:
+    return 1

@@ -38,11 +38,11 @@ def zos_catalog(ds_zos_no_depth_ref: xr.Dataset, mask_da: np.ndarray) -> TileCat
 
 
 @pytest.fixture(scope="module")
-def zos_extractor(zos_catalog: TileCatalog) -> DatasetTileFrameExtractor:
-    return DatasetTileFrameExtractor(catalog=zos_catalog)
+def zos_extractor(zos_catalog: TileCatalog, bbox_idx_ref) -> DatasetTileFrameExtractor:
+    return DatasetTileFrameExtractor(catalog=zos_catalog, bbox_id=bbox_idx_ref)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mask_multi_da(ds_mdlg_static: xr.Dataset) -> np.ndarray:
     sea_land_builder = SeaMaskBuilder(
         mask_name="mask_thetao",

@@ -15,11 +15,6 @@ def var_names() -> list[str]:
 
 
 @pytest.fixture
-def converter(var_names: list[str]) -> NcToCsvConverter:
-    return NcToCsvConverter(var_names=var_names)
-
-
-@pytest.fixture
 def twelve_nc_files(tmp_path: Path) -> list[Path]:
     """Create 12 empty .nc files with names like sst_2020-01-01_2020-01-31.nc."""
     names = [
@@ -39,7 +34,7 @@ def twelve_nc_files(tmp_path: Path) -> list[Path]:
 
 
 @pytest.fixture
-def _FakeGrid():
+def fake_grid():
     class _FakeGrid:
         def validate(self, _ds) -> None:
             return None
@@ -48,12 +43,12 @@ def _FakeGrid():
 
 
 @pytest.fixture
-def _FakeCatalog(_FakeGrid):
+def fake_catalog(fake_grid):
     class _FakeCatalog:
         def __init__(self, grid) -> None:
             self.grid = grid
 
-    return _FakeCatalog(_FakeGrid)
+    return _FakeCatalog(fake_grid)
 
 
 @pytest.fixture
@@ -61,9 +56,10 @@ def patched_converter(
     tmp_path: Path,
     var_names: list[str],
     twelve_nc_files: list[Path],
-    _FakeCatalog,
+    fake_catalog,
+    bbox_idx_ref,
 ) -> NcToCsvConverter:
-    converter = NcToCsvConverter(var_names=var_names)
+    converter = NcToCsvConverter(var_names=var_names, bbox_id=bbox_idx_ref)
 
     base = {
         "time": ["2020-01-01", "2020-01-02", "2020-01-03"],
@@ -79,7 +75,7 @@ def patched_converter(
     with (
         patch.object(NcToCsvConverter, "_list_files", return_value=twelve_nc_files),
         patch.object(NcToCsvConverter, "_nc_read", return_value=object()),
-        patch.object(TileCatalog, "from_dataset", return_value=_FakeCatalog),
+        patch.object(TileCatalog, "from_dataset", return_value=fake_catalog),
         patch.object(
             DatasetTileFrameExtractor,
             "to_frame_multi",

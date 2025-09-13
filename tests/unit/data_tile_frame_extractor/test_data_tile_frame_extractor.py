@@ -51,6 +51,7 @@ def test_zos_same_shape_and_columns_as_csv(
         "tile_id",
         "tile_lon",
         "tile_lat",
+        "bbox_id",
         "zos",
     }
     assert set(frame.columns) == expected_cols
@@ -93,12 +94,13 @@ def test_zos_tile_order_and_coords_match_between_catalog_and_csv(
 def test_single_variable_multi_depth_tile_ids_coords_depth_and_values_match_between_catalog_and_csv(
     ds_mdlg_ref: xr.Dataset,
     mask_multi_da: np.ndarray,
+    bbox_idx_ref: int,
     t_idx: int,
     d_idx: int,
 ):
     # Build catalog with the known mask variable from the static set
     catalog = TileCatalog.from_dataset(ds_mdlg_ref, mask=mask_multi_da)
-    ext = DatasetTileFrameExtractor(catalog=catalog)
+    ext = DatasetTileFrameExtractor(catalog=catalog, bbox_id=bbox_idx_ref)
 
     # Guard against unexpectedly short time/depth in the fixture
     if t_idx >= ds_mdlg_ref.sizes["time"]:
@@ -112,6 +114,11 @@ def test_single_variable_multi_depth_tile_ids_coords_depth_and_values_match_betw
     sub = frame[(frame["time"] == t_val) & (frame["depth_idx"] == d_idx)].reset_index(
         drop=True
     )
+
+    # bbox_id must be present and constant
+    assert "bbox_id" in sub.columns
+    assert sub["bbox_id"].nunique() == 1
+    assert int(sub["bbox_id"].iloc[0]) == int(bbox_idx_ref)
 
     # Expectations from catalog
     expected_ids = catalog.sea_tile_ids()
@@ -152,9 +159,10 @@ def test_single_variable_multi_depth_tile_ids_coords_depth_and_values_match_betw
 def test_multi_vars_thetao_so_keys_coords_depths_times_shapes_in_csv(
     ds_mdlg_ref: xr.Dataset,
     mask_multi_da: np.ndarray,
+    bbox_idx_ref: int,
 ):
     catalog = TileCatalog.from_dataset(ds_mdlg_ref, mask=mask_multi_da)
-    ext = DatasetTileFrameExtractor(catalog=catalog)
+    ext = DatasetTileFrameExtractor(catalog=catalog, bbox_id=bbox_idx_ref)
 
     all_var_df = ext.to_frame_multi(ds_mdlg_ref, ["thetao", "so"])
 
@@ -165,6 +173,7 @@ def test_multi_vars_thetao_so_keys_coords_depths_times_shapes_in_csv(
         "tile_id",
         "tile_lon",
         "tile_lat",
+        "bbox_id",
     ]
     df_thetao = all_var_df[cols_common + ["thetao"]]
     df_so = all_var_df[cols_common + ["so"]]
@@ -215,3 +224,8 @@ def test_multi_vars_thetao_so_keys_coords_depths_times_shapes_in_csv(
     # f) Value columns: float dtype and contain at least one non-NaN
     assert df_thetao["thetao"].dtype.kind == "f" and df_thetao["thetao"].notna().any()
     assert df_so["so"].dtype.kind == "f" and df_so["so"].notna().any()
+
+    # g) bbox_id must be present and constant across the merged frame
+    assert "bbox_id" in all_var_df.columns
+    assert all_var_df["bbox_id"].nunique() == 1
+    assert int(all_var_df["bbox_id"].iloc[0]) == int(bbox_idx_ref)
