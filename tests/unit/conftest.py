@@ -1,7 +1,9 @@
+import numpy as np
 import pytest
 import xarray as xr
 
 from src.data_processing.grid_spec import GridSpec
+from src.data_processing.sea_mask_builder import SeaMaskBuilder
 from tests.unit import config as test_config
 
 
@@ -36,5 +38,10 @@ def grid_spec(ds_sst_slg_ref: xr.Dataset) -> GridSpec:
 
 
 @pytest.fixture(scope="session")
-def mask_da(ds_static: xr.Dataset) -> xr.DataArray:
-    return ds_static["mask"]
+def mask_da(ds_static: xr.Dataset) -> np.ndarray:
+    sea_land_builder = SeaMaskBuilder(
+        mask_name="mask",
+        is_bit=False,
+        sea_value=0,
+    )
+    return sea_land_builder.build(ds_static)
