@@ -71,3 +71,26 @@ def test_bit_wise_false(use_real, mock_categorical_case, sst_static_mask_ds):
 
     assert got.shape == expected.shape
     assert np.array_equal(got, expected)
+
+
+def test_bitmask_requires_sea_value(fx_error_bitmask_no_sea_value_ds):
+    ds = fx_error_bitmask_no_sea_value_ds
+    b = SeaMaskBuilder(mask_name="mask", is_bit=True, sea_value=None)
+    with pytest.raises(KeyError):
+        b.build(ds)
+
+
+def test_nonbit_missing_long_name_with_no_sea_value(
+    fx_error_categorical_missing_long_name_ds,
+):
+    ds = fx_error_categorical_missing_long_name_ds
+    b = SeaMaskBuilder(mask_name="mask", is_bit=False, sea_value=None)
+    with pytest.raises(KeyError):
+        b.build(ds)
+
+
+def test_requires_lat_lon_dims(fx_error_wrong_dims_ds):
+    ds = fx_error_wrong_dims_ds
+    b = SeaMaskBuilder(mask_name="mask", is_bit=False, sea_value=1)
+    with pytest.raises(KeyError):
+        b.build(ds)

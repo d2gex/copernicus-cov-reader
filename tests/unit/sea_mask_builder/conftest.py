@@ -95,3 +95,48 @@ def mock_categorical_case(sea_bool_mask) -> Tuple[xr.Dataset, np.ndarray]:
 
     expected = sea_bool_mask.copy()
     return ds, expected
+
+
+@pytest.fixture(scope="session")
+def fx_error_bitmask_no_sea_value_ds() -> xr.Dataset:
+    """Bitmask-like dataset where sea_value is required but will be omitted in the test.
+
+    Dims: (time=1, latitude=2, longitude=2)
+    Includes a realistic long_name and an explicit _FillValue.
+    """
+    arr = np.array([[[1.0, 2.0], [4.0, -128.0]]], dtype=np.float32)
+    da = xr.DataArray(
+        arr,
+        dims=("time", "latitude", "longitude"),
+        attrs={"long_name": "land sea ice lake bit mask", "_FillValue": -128.0},
+    )
+    return xr.Dataset({"mask": da})
+
+
+@pytest.fixture(scope="session")
+def fx_error_categorical_missing_long_name_ds() -> xr.Dataset:
+    """Categorical dataset with no long_name mapping; test expects KeyError when
+    is_bit=False and sea_value=None.
+
+    Dims: (depth=1, latitude=2, longitude=2)
+    Values: 1 and 0, but no long_name declaring the mapping.
+    """
+    arr = np.array([[[1, 0], [1, 0]]], dtype=np.int8)
+    da = xr.DataArray(arr, dims=("depth", "latitude", "longitude"))  # no long_name
+    return xr.Dataset({"mask": da})
+
+
+@pytest.fixture(scope="session")
+def fx_error_wrong_dims_ds() -> xr.Dataset:
+    """Dataset with wrong spatial dim names (y,x instead of latitude,longitude).
+
+    Dims: (depth=1, y=2, x=2)
+    long_name includes a valid categorical mapping, but dims should trigger KeyError.
+    """
+    arr = np.array([[[1, 0], [1, 1]]], dtype=np.int8)
+    da = xr.DataArray(
+        arr,
+        dims=("depth", "y", "x"),
+        attrs={"long_name": "Land-sea mask: 1 = sea ; 0 = land"},
+    )
+    return xr.Dataset({"mask": da})
