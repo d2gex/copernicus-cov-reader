@@ -1,7 +1,9 @@
+import numpy as np
 import pytest
 import xarray as xr
 
 from src.data_processing.dataset_tile_frame_extractor import DatasetTileFrameExtractor
+from src.data_processing.sea_mask_builder import SeaMaskBuilder
 from src.data_processing.tile_catalog import TileCatalog
 from tests.unit import config as test_config
 
@@ -31,10 +33,20 @@ def ds_mdlg_static() -> xr.Dataset:
 
 
 @pytest.fixture(scope="module")
-def zos_catalog(ds_zos_no_depth_ref: xr.Dataset, mask_da: xr.DataArray) -> TileCatalog:
+def zos_catalog(ds_zos_no_depth_ref: xr.Dataset, mask_da: np.ndarray) -> TileCatalog:
     return TileCatalog.from_dataset(ds_zos_no_depth_ref, mask=mask_da)
 
 
 @pytest.fixture(scope="module")
 def zos_extractor(zos_catalog: TileCatalog) -> DatasetTileFrameExtractor:
     return DatasetTileFrameExtractor(catalog=zos_catalog)
+
+
+@pytest.fixture(scope="session")
+def mask_multi_da(ds_mdlg_static: xr.Dataset) -> np.ndarray:
+    sea_land_builder = SeaMaskBuilder(
+        mask_name="mask_thetao",
+        is_bit=False,
+        sea_value=1,
+    )
+    return sea_land_builder.build(ds_mdlg_static)
