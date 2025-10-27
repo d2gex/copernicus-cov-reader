@@ -38,7 +38,7 @@ class NcToCsvConverter:
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        nc_paths = self._list_files(in_dir, suffix=".nc")
+        nc_paths = self._list_files(in_dir, ".nc")
         if not nc_paths:
             return []
 

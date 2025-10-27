@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Sequence
 
-import numpy as np
-
 from src.bounding_box.bounding_box import BoundingBox
 from src.data_processing.time_block_splitter import (
     TimeBlock as TBBlock,
@@ -19,7 +17,6 @@ class ProductSpec:
     name: str
     dataset_id: str
     variables: Sequence[str]
-    sea_land_mask: np.ndarray
 
     def slug(self) -> str:
         # Simple, constrained slug: lowercase, spaces→-, drop leading dots/underscores/hyphens.

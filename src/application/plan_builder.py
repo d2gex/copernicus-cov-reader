@@ -41,7 +41,7 @@ class PlanBuilder:
         self.n_chunks = n_chunks
         self.duration = duration
 
-    def build(self) -> Plan:
+    def build(self, coord_df: pd.DataFrame) -> Plan:
         if self.n_bands < 1:
             raise ValueError("n_bands must be >= 1.")
         if (self.n_chunks is None) == (self.duration is None):
@@ -49,8 +49,7 @@ class PlanBuilder:
 
         # Split bbox using existing LatBandSplitter. We don't need input points for equal bands.
         splitter = LatBandSplitter(self.master_bbox, self.n_bands)
-        empty_df = pd.DataFrame({"lon": [], "lat": []})
-        band_results = splitter.split(empty_df)
+        band_results = splitter.split(coord_df)
 
         # Sort **north→south** and assign indices 1..N
         sorted_bands = sorted(
