@@ -127,9 +127,6 @@ class HaulTileAssigner:
 
         # 2) append sea-cell center coords from catalog for the mapped tile_ids
         tile_ids = assigned[self.out_tile_col].to_numpy(copy=False)
-        if np.any(tile_ids < 0):
-            # Keep behavior explicit: mark unmapped with NaN centers; caller can filter/log.
-            pass
 
         # Vectorized lookup using sea arrays; tile_id is an index into sea arrays
         sea_lons, sea_lats = self._catalog.sea_tile_coords()  # type: ignore[union-attr]
@@ -151,48 +148,3 @@ class HaulTileAssigner:
     def _ensure_ready(self) -> None:
         if (self._grid is None) or (self._catalog is None) or (self._kd is None):
             raise RuntimeError("Call load_static_and_build_index() before assign().")
-
-
-# -------------------- thin entrypoint --------------------
-
-
-def run(
-    hauls_csv_in: Path,
-    static_nc_path: Path,
-    hauls_csv_out: Path,
-    mask_var: str = "mask",
-    is_bit: bool = True,
-    sea_value: int = 1,
-    lon_col: str = "lon",
-    lat_col: str = "lat",
-    time_col: str = "time",
-    tolerance_deg: Optional[float] = None,
-) -> Path:
-    """
-    Load hauls CSV, assign nearest *sea* tile_id via KD over static mask centers,
-    append tile center coords, and write a new CSV.
-    """
-    hauls = pd.read_csv(hauls_csv_in)
-    if hauls.empty:
-        raise ValueError("Hauls CSV is empty.")
-
-    # Lat0 hint = median haul latitude (keeps KD projection distances well-scaled)
-    lat0_hint = float(np.nanmedian(hauls[lat_col].to_numpy()))
-
-    assigner = HaulTileAssigner(
-        static_spec=StaticSpec(
-            path=static_nc_path, mask_var=mask_var, is_bit=is_bit, sea_value=sea_value
-        ),
-        lon_col=lon_col,
-        lat_col=lat_col,
-        time_col=time_col,
-    )
-    assigner.load_static_and_build_index(lat0_hint=lat0_hint)
-    enriched = assigner.assign(hauls, tolerance_deg=tolerance_deg)
-
-    # Write result
-    hauls_csv_out = Path(hauls_csv_out)
-    hauls_csv_out.parent.mkdir(parents=True, exist_ok=True)
-    with hauls_csv_out.open("w", newline="") as f:
-        enriched.to_csv(f, index=False)
-    return hauls_csv_out
