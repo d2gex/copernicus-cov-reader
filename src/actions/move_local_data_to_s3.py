@@ -8,10 +8,10 @@ from pathlib import Path
 
 import boto3
 
-from .artifact_enumerator import enumerate_artifacts
-from .bulk_sinker import Policy, bulk_sink
-from .progress import ProgressReporter
-from .storage_sink import S3Config, S3StorageSink
+from src.aws.artifact_enumerator import enumerate_artifacts
+from src.aws.bulk_sinker import Policy, bulk_sink
+from src.aws.progress import ProgressReporter
+from src.aws.storage_sink import S3Config, S3StorageSink
 
 # ----------------------------
 # Config (single source of truth, env-only)
