@@ -77,11 +77,11 @@ def run() -> None:
     # haul_db_builder = HaulDbBuilder(haul_df, haul_correction_df)
     # clean_haul_df = haul_db_builder.run(selected_columns)
 
-    out_dir = cfg.output_path / owner
-    clean_haul_df = pd.read_csv(out_dir / "hauls_clean.csv")
+    clean_haul_df = pd.read_csv(cfg.output_path / owner / "hauls_clean.csv")
     haul_with_tiles_df, tiles_with_date_df = build_tiles_dbs(clean_haul_df, static_nc)
 
     # clean_haul_df.to_csv(out_dir / "clean_haul_db.csv", index=False)
+    out_dir = cfg.output_path / owner / cfg.product_slug
     haul_with_tiles_df.to_csv(out_dir / "haul_with_tiles_db.csv", index=False)
     tiles_with_date_df.to_csv(out_dir / "tiles_with_date_db.csv", index=False)
 

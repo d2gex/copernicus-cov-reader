@@ -12,23 +12,21 @@ from src.config import cfg  # unified config object
 from src.copernicus.cm_credentials import CMCredentials
 
 
-def fetch_data() -> None:
-    df = pd.read_csv(cfg.csv_path)
-
+def fetch_data(tiles_df: pd.DataFrame) -> None:
     bboxes = BBoxFactory(
         min_lon=cfg.region_min_lon,
         min_lat=cfg.region_min_lat,
         max_lon=cfg.region_max_lon,
         max_lat=cfg.region_max_lat,
         lat_band_count=cfg.lat_band_count,
-    ).build(df)
+    ).build(tiles_df)
 
     orch = TileDayOrchestrator(
         dataset_id=cfg.dataset_id,
         variables=list(cfg.variables),
         spatial_resolution_deg=cfg.spatial_resolution_deg,
     )
-    jobs = orch.build_jobs(df=df, bboxes=bboxes)
+    jobs = orch.build_jobs(df=tiles_df, bboxes=bboxes)
 
     layout = ProjectLayout(root=cfg.output_root)
     dl = Downloader(cm_handle=cm)
@@ -57,7 +55,13 @@ def process_data() -> None:
 
 def run() -> None:
     CMCredentials().ensure_present()
-    fetch_data()  # uncomment when running the downloader stage
+    tiles_df = pd.read_csv(
+        cfg.output_path
+        / cfg.product_owner
+        / cfg.product_slug
+        / "test_tiles_with_date_db.csv"
+    )
+    fetch_data(tiles_df)  # uncomment when running the downloader stage
     process_data()
 
 

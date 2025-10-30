@@ -46,7 +46,6 @@ class Config:
 
     # Derived
     output_root: Path  # OUTPUT_PATH / PRODUCT_OWNER / "data"
-    csv_path: Path  # INPUT_PATH / CSV_REL_PATH
 
 
 cfg = Config(
@@ -72,5 +71,4 @@ cfg = Config(
     region_max_lat=float(_req("REGION_MAX_LAT")),
     lat_band_count=int(_req("LAT_BAND_COUNT")),
     output_root=(Path(_req("OUTPUT_PATH")) / _req("PRODUCT_OWNER") / "data"),
-    csv_path=(Path(_req("INPUT_PATH")) / _req("CSV_REL_PATH")),
 )
