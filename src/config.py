@@ -35,7 +35,6 @@ class Config:
     product_slug: str
     dataset_id: str
     variables: Tuple[str, ...]
-    csv_rel_path: str
 
     spatial_resolution_deg: float
     region_min_lon: float
@@ -63,7 +62,6 @@ cfg = Config(
     product_slug=_req("PRODUCT_SLUG").lower(),
     dataset_id=_req("DATASET_ID"),
     variables=tuple(_req("VARIABLES").split(",")),
-    csv_rel_path=_req("CSV_REL_PATH"),
     spatial_resolution_deg=float(_req("SPATIAL_RESOLUTION_DEG")),
     region_min_lon=float(_req("REGION_MIN_LON")),
     region_max_lon=float(_req("REGION_MAX_LON")),
