@@ -12,6 +12,7 @@ from src import config
 from src.app.bbox_factory import BBoxFactory
 from src.app.downloader import Downloader
 from src.app.layout import ProjectLayout
+from src.app.nc_to_csv_batch_converter import NCTileToCSVBatchConverter
 from src.app.orchestrator import TileDayOrchestrator
 from src.copernicus.cm_credentials import CMCredentials
 
@@ -32,11 +33,7 @@ class Config:
     lat_band_count: int
 
 
-def run(cfg: Config) -> None:
-    # Ensure Copernicus Marine credentials exist (your existing helper)
-    creds = CMCredentials()
-    creds.ensure_present()
-
+def fetch_data(cfg: Config) -> None:
     # Read the tiles CSV
     df = pd.read_csv(cfg.csv_path)
 
@@ -78,7 +75,19 @@ def run(cfg: Config) -> None:
             dl.download_day(job, nc_path)
 
 
+def process_data(cfg: Config) -> None:
+    NCTileToCSVBatchConverter(
+        output_root=cfg.output_root,
+        product_slug=cfg.product_slug,
+        variables=list(cfg.variables),
+    ).run()
+
+
 if __name__ == "__main__":
+    # Ensure Copernicus Marine credentials exist (your existing helper)
+    creds = CMCredentials()
+    creds.ensure_present()
+
     cfg = Config(
         output_root=config.OUTPUT_PATH / "utpb" / "data",
         product_slug="IBI_MULTIYEAR_BGC_005_003".lower(),
@@ -92,4 +101,5 @@ if __name__ == "__main__":
         region_max_lat=44.15243,
         lat_band_count=2,
     )
-    run(cfg)
+    # fetch_data(cfg)
+    process_data(cfg)
