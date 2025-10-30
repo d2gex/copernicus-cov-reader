@@ -56,7 +56,7 @@ def process_data() -> None:
 def run() -> None:
     CMCredentials().ensure_present()
     tiles_df = pd.read_csv(
-        cfg.output_path
+        cfg.input_path
         / cfg.product_owner
         / cfg.product_slug
         / "test_tiles_with_date_db.csv"
