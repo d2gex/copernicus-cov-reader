@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import logging
-import os
 import shutil
-from dataclasses import dataclass
 from pathlib import Path
 
 import boto3
@@ -12,70 +10,7 @@ from src.aws.artifact_enumerator import enumerate_artifacts
 from src.aws.bulk_sinker import Policy, bulk_sink
 from src.aws.progress import ProgressReporter
 from src.aws.storage_sink import S3Config, S3StorageSink
-
-# ----------------------------
-# Config (single source of truth, env-only)
-# ----------------------------
-
-
-@dataclass(frozen=True)
-class AwsMainConfig:
-    # Local roots
-    nc_root: Path
-    csv_root: Path
-
-    # S3
-    s3_bucket: str
-    s3_prefix: str
-
-    # Behavior
-    clean: bool
-    policy: Policy
-    verbose: bool
-    progress_step: float
-
-    @classmethod
-    def load_from_env(cls) -> "AwsMainConfig":
-        bucket = os.getenv("S3_BUCKET")
-        if not bucket:
-            raise ValueError("S3_BUCKET is required")
-
-        nc_root = os.getenv("AWS_NC_ROOT")
-        csv_root = os.getenv("AWS_CSV_ROOT")
-        if not nc_root or not csv_root:
-            raise ValueError("AWS_NC_ROOT and AWS_CSV_ROOT are required")
-
-        prefix = os.getenv("S3_OUTPUT_PREFIX", "")
-
-        clean = os.getenv("AWS_CLEAN", "0").lower() in {"1", "true", "yes"}
-        verbose = os.getenv("AWS_VERBOSE", "0").lower() in {"1", "true", "yes"}
-
-        policy_raw = os.getenv("AWS_POLICY", Policy.SKIP_IF_EXISTS.value)
-        try:
-            policy = Policy(policy_raw)
-        except ValueError as e:
-            raise ValueError(
-                "AWS_POLICY must be one of: skip_if_exists, always_put"
-            ) from e
-
-        step_raw = os.getenv("AWS_PROGRESS_STEP", "0.10")
-        try:
-            step = float(step_raw)
-            if not (0 < step <= 1):
-                raise ValueError
-        except ValueError as e:
-            raise ValueError("AWS_PROGRESS_STEP must be a float in (0, 1]") from e
-
-        return cls(
-            nc_root=Path(nc_root),
-            csv_root=Path(csv_root),
-            s3_bucket=bucket,
-            s3_prefix=prefix,
-            clean=clean,
-            policy=policy,
-            verbose=verbose,
-            progress_step=step,
-        )
+from src.config import cfg  # unified config object
 
 
 def _configure_logging(verbose: bool) -> None:
@@ -112,36 +47,31 @@ def _move_tree(
     )
 
 
-# ----------------------------
-# Public entrypoint (no args)
-# ----------------------------
-
-
 def run() -> None:
-    cfg = AwsMainConfig.load_from_env()
+    _configure_logging(cfg.aws_verbose)
 
-    _configure_logging(cfg.verbose)
+    _assert_dir(cfg.aws_nc_root)
+    _assert_dir(cfg.aws_csv_root)
 
-    _assert_dir(cfg.nc_root)
-    _assert_dir(cfg.csv_root)
-
-    if cfg.clean:
+    if cfg.aws_clean:
         logging.info("Cleaning local roots...")
-        _clean_roots(cfg.nc_root, cfg.csv_root)
+        _clean_roots(cfg.aws_nc_root, cfg.aws_csv_root)
+
+    policy = Policy(cfg.aws_policy)
+    step = cfg.aws_progress_step
 
     _move_tree(
-        "NC sinking",
-        cfg.nc_root,
-        cfg.policy,
-        cfg.s3_bucket,
-        cfg.s3_prefix,
-        cfg.progress_step,
+        "NC sinking", cfg.aws_nc_root, policy, cfg.s3_bucket, cfg.s3_output_prefix, step
     )
     _move_tree(
         "CSV sinking",
-        cfg.csv_root,
-        cfg.policy,
+        cfg.aws_csv_root,
+        policy,
         cfg.s3_bucket,
-        cfg.s3_prefix,
-        cfg.progress_step,
+        cfg.s3_output_prefix,
+        step,
     )
+
+
+if __name__ == "__main__":
+    run()
