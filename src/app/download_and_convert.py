@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import time
 from typing import List
 
 import copernicusmarine as cm
@@ -12,6 +14,22 @@ from src.app.nc_to_csv_batch_converter import NCTileToCSVBatchConverter
 from src.app.orchestrator import TileDayOrchestrator
 from src.app.scheduler import AsyncScheduler, SchedulerContext, SerialScheduler
 from src.config import cfg
+
+
+def timed(label: str):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            logging.info("%s: start", label)
+            t0 = time.perf_counter()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                dt = time.perf_counter() - t0
+                logging.info("%s: done in %.2fs", label, dt)
+
+        return wrapper
+
+    return decorator
 
 
 class DownloadAndConvert:
@@ -36,15 +54,16 @@ class DownloadAndConvert:
         )
         return orch.build_jobs(df=tiles_df, bboxes=bboxes)
 
-    @staticmethod
-    def _convert() -> None:
+    @timed("convert")
+    def _convert(self) -> None:
         NCTileToCSVBatchConverter(
             output_root=cfg.output_root,
             product_slug=cfg.product_slug,
             variables=list(cfg.variables),
         ).run()
 
-    def _download(self):
+    @timed("download")
+    def _download(self) -> None:
         jobs = self._build_jobs(self.tiles_df)
 
         ctx = SchedulerContext(layout=self._layout, product_slug=cfg.product_slug)
