@@ -30,6 +30,7 @@ class Config:
     aws_verbose: bool
     aws_policy: str  # "skip_if_exists" | "always_put"
     aws_progress_step: float  # (0, 1]
+    aws_max_concurrency: int
 
     product_owner: str
     product_slug: str
@@ -42,6 +43,8 @@ class Config:
     region_min_lat: float
     region_max_lat: float
     lat_band_count: int
+
+    download_and_convert: int
 
     # Derived
     output_root: Path  # OUTPUT_PATH / PRODUCT_OWNER / "data"
@@ -58,6 +61,8 @@ cfg = Config(
     aws_verbose=_req("AWS_VERBOSE").lower() in {"1", "true", "yes"},
     aws_policy=_req("AWS_POLICY"),
     aws_progress_step=float(_req("AWS_PROGRESS_STEP")),
+    aws_max_concurrency=int(_req("AWS_MAX_CONCURRENCY")),
+    download_and_convert=int(_req("DOWNLOAD_AND_CONVERT")),
     product_owner=_req("PRODUCT_OWNER"),
     product_slug=_req("PRODUCT_SLUG").lower(),
     dataset_id=_req("DATASET_ID"),
