@@ -43,6 +43,7 @@ class Config:
     lat_band_count: int
 
     download_and_convert: int
+    tile_csv_filename: str
 
     # Derived
     output_root: Path  # OUTPUT_PATH / PRODUCT_OWNER / "data"
@@ -59,6 +60,7 @@ cfg = Config(
     aws_progress_step=float(_req("AWS_PROGRESS_STEP")),
     aws_max_concurrency=int(_req("AWS_MAX_CONCURRENCY")),
     download_and_convert=int(_req("DOWNLOAD_AND_CONVERT")),
+    tile_csv_filename=_req("TILE_CSV_FILENAME"),
     product_owner=_req("PRODUCT_OWNER"),
     product_slug=_req("PRODUCT_SLUG").lower(),
     dataset_id=_req("DATASET_ID"),

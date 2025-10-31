@@ -10,10 +10,7 @@ from src.copernicus.cm_credentials import CMCredentials
 def run(download_and_convert: int) -> None:
     CMCredentials().ensure_present()
     tiles_df = pd.read_csv(
-        cfg.input_path
-        / cfg.product_owner
-        / cfg.product_slug
-        / "test_tiles_with_date_db.csv"
+        cfg.input_path / cfg.product_owner / cfg.product_slug / cfg.tile_csv_filename
     )
     dac = DownloadAndConvert(tiles_df)
     dac.run(download_and_convert)
