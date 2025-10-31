@@ -24,8 +24,6 @@ class Config:
     s3_bucket: str
     s3_output_prefix: str
 
-    aws_nc_root: Path
-    aws_csv_root: Path
     aws_clean: bool
     aws_verbose: bool
     aws_policy: str  # "skip_if_exists" | "always_put"
@@ -55,8 +53,6 @@ cfg = Config(
     input_path=Path(_req("INPUT_PATH")),
     s3_bucket=_req("S3_BUCKET"),
     s3_output_prefix=_req("S3_OUTPUT_PREFIX"),
-    aws_nc_root=Path(_req("AWS_NC_ROOT")),
-    aws_csv_root=Path(_req("AWS_CSV_ROOT")),
     aws_clean=_req("AWS_CLEAN").lower() in {"1", "true", "yes"},
     aws_verbose=_req("AWS_VERBOSE").lower() in {"1", "true", "yes"},
     aws_policy=_req("AWS_POLICY"),
