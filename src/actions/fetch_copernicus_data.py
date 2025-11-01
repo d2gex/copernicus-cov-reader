@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from src.app.csv_amalgamation import CSVAmalgamation
 from src.app.download_and_convert import DownloadAndConvert
 from src.config import cfg
 from src.copernicus.cm_credentials import CMCredentials
@@ -14,6 +15,7 @@ def run(download_and_convert: int) -> None:
     )
     dac = DownloadAndConvert(tiles_df)
     dac.run(download_and_convert)
+    CSVAmalgamation(product_root=cfg.output_root / cfg.product_slug).run()
 
 
 if __name__ == "__main__":
