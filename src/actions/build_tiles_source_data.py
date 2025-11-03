@@ -38,12 +38,12 @@ def assign_tiles_to_hauls(
 
 
 def build_tiles_dbs(
-    hauls_db: pd.DataFrame, static_layer_path: Path
+    hauls_db: pd.DataFrame, static_layer_path: Path, mask_var: str = "mask"
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     enriched = assign_tiles_to_hauls(
         hauls=hauls_db,
         static_nc_path=static_layer_path,
-        mask_var="mask",
+        mask_var=mask_var,
         is_bit=True,
         sea_value=1,
         tolerance_deg=None,
@@ -59,12 +59,7 @@ def run() -> None:
 
     # haul_df = pd.read_csv(cfg.input_path / owner / "capturas_2023_nueva.csv", encoding="latin-1")
     # haul_correction_df = pd.read_csv(cfg.input_path / owner / "original" / "land_faroff_at_sea_features_corrected.csv")
-    static_nc = (
-        cfg.input_path
-        / owner
-        / "static_data"
-        / "ibi_multiyear_bgc_005_003__bbox_001__static.nc"
-    )
+    static_nc = cfg.input_path / owner / "static_data" / cfg.static_filename
 
     # selected_columns = {
     #     "haul_id": "Idlance",
@@ -77,8 +72,10 @@ def run() -> None:
     # haul_db_builder = HaulDbBuilder(haul_df, haul_correction_df)
     # clean_haul_df = haul_db_builder.run(selected_columns)
 
-    clean_haul_df = pd.read_csv(cfg.output_path / owner / "hauls_clean.csv")
-    haul_with_tiles_df, tiles_with_date_df = build_tiles_dbs(clean_haul_df, static_nc)
+    clean_haul_df = pd.read_csv(cfg.input_path / owner / "clean_haul_db.csv")
+    haul_with_tiles_df, tiles_with_date_df = build_tiles_dbs(
+        clean_haul_df, static_nc, mask_var="mask_thetao"
+    )
 
     # clean_haul_df.to_csv(out_dir / "clean_haul_db.csv", index=False)
     out_dir = cfg.output_path / owner / cfg.product_slug

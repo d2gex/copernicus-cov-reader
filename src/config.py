@@ -31,6 +31,7 @@ class Config:
     aws_max_concurrency: int
 
     product_owner: str
+    static_filename: str
     product_slug: str
     dataset_id: str
     variables: Tuple[str, ...]
@@ -62,6 +63,7 @@ cfg = Config(
     download_and_convert=int(_req("DOWNLOAD_AND_CONVERT")),
     tile_csv_filename=_req("TILE_CSV_FILENAME"),
     product_owner=_req("PRODUCT_OWNER"),
+    static_filename=_req("STATIC_FILENAME"),
     product_slug=_req("PRODUCT_SLUG").lower(),
     dataset_id=_req("DATASET_ID"),
     variables=tuple(_req("VARIABLES").split(",")),
