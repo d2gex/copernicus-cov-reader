@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 from typing import List
 
@@ -29,6 +30,23 @@ class CSVAmalgamation:
         files.sort(key=lambda p: p.as_posix())
         return files
 
+    @staticmethod
+    def _parse_tile_id_from_filename(path: Path) -> int:
+        """
+        Parse tile_id from filename.
+        Examples:
+          '00146.csv' -> 146
+          'tile_00325.csv' -> 325
+        Raises ValueError if no digits can be found.
+        """
+        stem = path.stem
+        if stem.isdigit():
+            return int(stem)
+        m = re.search(r"(\d+)", stem)
+        if not m:
+            raise ValueError(f"Cannot infer tile_id from filename: {path.name}")
+        return int(m.group(1))
+
     @utils.timed("csv amalgamation")
     def run(self) -> None:
         csv_files = self._list_csv_files()
@@ -38,8 +56,15 @@ class CSVAmalgamation:
             )
             return
 
-        frames = [pd.read_csv(p) for p in csv_files]
-        merged = pd.concat(frames, ignore_index=True)
+        frames: List[pd.DataFrame] = []
+        for p in csv_files:
+            df = pd.read_csv(p)
+            tile_id = self._parse_tile_id_from_filename(p)
+            # Insert tile_id as the first column (no copy; mutate local df only)
+            df.insert(0, "tile_id", tile_id)
+            frames.append(df)
+
+        merged = pd.concat(frames, ignore_index=True, sort=False)
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         merged.to_csv(self.output_path, index=False)
         logging.info(
