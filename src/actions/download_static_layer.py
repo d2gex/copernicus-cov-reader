@@ -15,5 +15,8 @@ if __name__ == "__main__":
             cfg.region_max_lon,
             cfg.region_max_lat,
         ],
-        outfile=cfg.input_path / cfg.product_owner / "static_data" / cfg.static_name,
+        outfile=cfg.input_path
+        / cfg.product_owner
+        / "static_data"
+        / cfg.static_filename,
     )
