@@ -74,7 +74,7 @@ def run() -> None:
 
     clean_haul_df = pd.read_csv(cfg.input_path / owner / "clean_haul_db.csv")
     haul_with_tiles_df, tiles_with_date_df = build_tiles_dbs(
-        clean_haul_df, static_nc, mask_var="mask_thetao"
+        clean_haul_df, static_nc, mask_var="mask"
     )
 
     # clean_haul_df.to_csv(out_dir / "clean_haul_db.csv", index=False)
