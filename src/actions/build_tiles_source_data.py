@@ -73,14 +73,28 @@ def run() -> None:
     # clean_haul_df = haul_db_builder.run(selected_columns)
 
     clean_haul_df = pd.read_csv(cfg.input_path / owner / "clean_haul_db.csv")
+    time_parsed = pd.to_datetime(
+        clean_haul_df["time"].astype(str).str.strip(),
+        dayfirst=True,
+        errors="coerce",  # bad dates -> NaT
+    )
+    cutoff = pd.Timestamp(1993, 1, 1)
+
+    # valid = date >= 01/01/1993; invalid = earlier or unparseable
+    is_valid = time_parsed >= cutoff
+
+    valid_haul_db = clean_haul_df[is_valid.fillna(False)].copy()
+    invalid_haul_db = clean_haul_df[~is_valid.fillna(False)].copy()
+
     haul_with_tiles_df, tiles_with_date_df = build_tiles_dbs(
-        clean_haul_df, static_nc, mask_var="mask"
+        valid_haul_db, static_nc, mask_var="mask"
     )
 
     # clean_haul_df.to_csv(out_dir / "clean_haul_db.csv", index=False)
     out_dir = cfg.output_path / owner / cfg.product_slug
     haul_with_tiles_df.to_csv(out_dir / "haul_with_tiles_db.csv", index=False)
     tiles_with_date_df.to_csv(out_dir / "tiles_with_date_db.csv", index=False)
+    invalid_haul_db.to_csv(out_dir / "invalid_haul_db.csv", index=False)
 
 
 if __name__ == "__main__":
